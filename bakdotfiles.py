@@ -175,7 +175,7 @@ def flatten_item(path):
     '''Given a path, yields (in this order):
     - All of the path's ancestor directories from root (but excluding /), in order
     - The path itself
-    - All of the path's descendant directories (if path is a directory), in order'''
+    - All of the path's descendants (if path is a directory), in order'''
 
     # Yield all parent directories of the item in succession
     # This way `backup_file()` will mkdir() them before trying to copy their children
