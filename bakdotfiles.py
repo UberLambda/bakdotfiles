@@ -56,6 +56,9 @@ BACKUP_DIR = os.path.join(SELF_DIR, 'backup')
 CFG_FILE = os.path.join(SELF_DIR, 'dotfiles.cfg')
 '''Path to the default backup configuration file.'''
 
+OLD_SUFFIX = '.bakold'
+'''Suffix to add to the filenames of outdated files.'''
+
 
 class Log:
     TRACE = -1
@@ -248,6 +251,24 @@ def backup_item(src_path, backup_dir, force=False):
 
     os.chown(dst_path, src_stat.st_uid, src_stat.st_gid)
 
+def mark_old_files(src_root, bak_root, dry_run=False, verbose=False):
+    '''Adds a suffix to the names of all files present in `bak_root` but not in `src_root`.'''
+    for root, dirnames, filenames in os.walk(bak_root):
+        rel_root = os.path.relpath(root, bak_root)
+        for filename in filenames:
+            if filename.endswith(OLD_SUFFIX):
+                # Already marked as outdated
+                continue
+
+            bak_path = os.path.join(root, filename)
+            src_path = os.path.join(src_root, rel_root, filename)
+            if os.path.exists(src_path):
+                continue
+
+            if verbose:
+                log(log.TRACE, src_path, 'is outdated')
+            if not dry_run:
+                os.rename(bak_path, bak_path + OLD_SUFFIX)
 
 Config = namedtuple('Config', 'included excluded')
 
@@ -430,6 +451,10 @@ def main():
                      mk_item_msg=path_item_msg,
                      mk_done_msg=lambda: 'Done',
                      clear=clear_progress)
+
+    # Mark files present in the backup but not in the source as .old
+    log(log.INFO, 'Detecting outdated files...')
+    mark_old_files('/', args.backup_dir, args.dry_run, args.verbose >= 1)
 
     # Done
     if n_skipped > 0:
