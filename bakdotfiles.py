@@ -392,7 +392,7 @@ def main():
         except FileExistsError as e: 
             if not clear_progress: log(log.WARN, f'\nskipped: {e}')
             nonlocal n_skipped; n_skipped += 1
-        except e:
+        except Exception as e:
             log(log.WARN, f'{clear_line}failed to backup {f}: {e}')
             nonlocal n_failed; n_failed += 1
 
