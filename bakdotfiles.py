@@ -392,7 +392,7 @@ def main():
         except FileExistsError as e: 
             if not clear_progress: log(log.WARN, f'\nskipped: {e}')
             nonlocal n_skipped; n_skipped += 1
-        except e:
+        except Exception as e:
             log(log.WARN, f'{clear_line}failed to backup {f}: {e}')
             nonlocal n_failed; n_failed += 1
 
@@ -416,6 +416,10 @@ def main():
         print_excluded_files(all_changed_files, changed_files)
     else:
         log(log.INFO, len(changed_files), 'file(s) to backup found')
+
+    # Ensure backup dir is present
+    if not args.dry_run:
+        os.makedirs(BACKUP_DIR, exist_ok=True)
 
     # Backup changed package files
     progress_foreach(changed_files, do_backup_item,
